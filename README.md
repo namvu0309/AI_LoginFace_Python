@@ -1,23 +1,150 @@
-# Face-Detection-with-Name-Recognition
-Python face detection with name of the person and training of the dataset to recognize the face of the person
-# Steps
-<ol>
-  <li>Run the 01_face_dataset.py</li>
-  - Add the unique id in the terminal(for ex: 1,2,3,...).<br>
-  <li>Run the 02_face_training.py</li>
-  - The faces generated in the dataset folder will be trained.<br>
-  <li>Run 03_face_recognition.py</li>
-  - add your name in the list (names = [none,"Shreyas"]) depending on the number of faces trained in the model.<br>
-  - run the file, following output will be displayed on the screen.<br>
-</ol>
+# Hướng dẫn Setup Face Authentication
 
-# YouTube Video
-Link : <a href="https://www.youtube.com/watch?v=Id-jWnmqPoE">https://www.youtube.com/watch?v=Id-jWnmqPoE</a>
+## Vấn đề hiện tại
+- Lỗi database `qnhg_db` không tồn tại
+- Cần cấu hình database và chạy migration
 
+## Bước 1: Cấu hình Database
 
+### 1.1 Tạo database
+```sql
+CREATE DATABASE qnhg_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-# Output Screen
+### 1.2 Cấu hình Laravel
+Tạo file `.env` từ `.env.example`:
+```bash
+cd Backend-QNHG
+cp .env.example .env
+```
 
-![Animated GIF-downsized_large](https://user-images.githubusercontent.com/42066122/115507607-f770e880-a299-11eb-9a98-2e481024c16e.gif)
+Chỉnh sửa file `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=qnhg_db
+DB_USERNAME=root
+DB_PASSWORD=
 
+# Face Authentication Service
+FACE_SERVICE_URL=http://localhost:8001
+```
 
+### 1.3 Chạy migration Laravel
+```bash
+cd Backend-QNHG
+php artisan migrate
+```
+
+## Bước 2: Cài đặt Python Dependencies
+
+```bash
+cd Face-Detection-with-Name-Recognition-main
+python -m pip install -r requirements.txt
+
+```
+
+## Bước 4: Khởi động Services
+
+### Terminal 1: Python Face Service
+```bash
+cd Face-Detection-with-Name-Recognition-main
+python face_api.py
+
+### Terminal 2: Laravel Backend
+```bash
+cd Backend-QNHG
+php artisan serve
+```
+
+### Terminal 3: React Frontend
+```bash
+cd Frontend-QNHG
+npm run dev
+```
+
+## Bước 5: Test
+
+### 5.1 Kiểm tra Python Service
+Truy cập: http://localhost:5000/health
+
+### 5.2 Test Face Authentication
+Truy cập: http://localhost:5173/admin/face-auth-test
+
+## Troubleshooting
+
+### Lỗi Database
+- Đảm bảo MySQL đang chạy
+- Kiểm tra thông tin kết nối trong `.env`
+- Chạy `php artisan migrate:fresh` nếu cần
+
+### Lỗi Python Service
+- Kiểm tra port 8001 không bị sử dụng
+- Đảm bảo tất cả dependencies đã được cài đặt
+- Kiểm tra log lỗi trong terminal
+
+### Lỗi Frontend
+- Kiểm tra alias path trong `vite.config.js`
+- Restart development server sau khi thay đổi config
+- Kiểm tra console browser để xem lỗi
+
+## Cấu trúc Files
+
+```
+prj-qnhg/
+├── Backend-QNHG/           # Laravel Backend
+│   ├── app/Http/Controllers/Admin/Auth/FaceAuthController.php
+│   ├── routes/admin/auth.php
+│   └── database/migrations/2025_01_20_000000_create_admin_faces_table.php
+├── Frontend-QNHG/          # React Frontend
+│   ├── src/components/admin/auth/
+│   │   ├── FaceLogin.jsx
+│   │   ├── FaceRegister.jsx
+│   │   └── FaceAuthTest.jsx
+│   ├── src/services/admin/authService.js
+│   ├── src/config/api.js
+│   └── vite.config.js
+└── face-auth-service/      # Python Face Service
+    ├── main.py
+    ├── face_utils.py
+    ├── database.py
+    ├── schemas.py
+    ├── requirements.txt
+    └── README.md
+```
+
+## API Endpoints
+
+### Laravel Routes
+- `POST /api/admin/auth/face/login` - Đăng nhập bằng khuôn mặt
+- `POST /api/admin/auth/face/register` - Đăng ký khuôn mặt
+- `DELETE /api/admin/auth/face/delete/{userId}` - Xóa khuôn mặt
+- `GET /api/admin/auth/face/health` - Health check
+
+### Python Service
+- `POST /register-face` - Đăng ký khuôn mặt
+- `POST /login-face` - Đăng nhập bằng khuôn mặt
+- `DELETE /delete-face/{user_id}` - Xóa khuôn mặt
+- `GET /health` - Health check
+
+## Lưu ý quan trọng
+
+1. **Database**: Đảm bảo database `qnhg_db` đã được tạo
+2. **Ports**: 
+   - Laravel: 8000
+   - Python Service: 5000
+   - React: 5173
+3. **Camera**: Cần camera để test chức năng
+4. **Model AI**: Lần đầu chạy sẽ tải model FaceNet (có thể mất vài phút)
+5. **Environment**: Đảm bảo tất cả environment variables đã được cấu hình
+
+## Test Flow
+
+1. Khởi động tất cả services
+2. Truy cập http://localhost:8001/health để kiểm tra Python service
+3. Truy cập http://localhost:5173/face-auth-test
+4. Click "Kiểm tra Service" để test kết nối
+5. Click "Đăng ký khuôn mặt" để đăng ký khuôn mặt cho admin
+6. Click "Đăng nhập bằng khuôn mặt" để test đăng nhập
+export CENTER_DB_URL="mysql+pymysql://root:@127.0.0.1:3306/center_db"
