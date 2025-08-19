@@ -219,8 +219,8 @@ def capture_face():
         if not saved_faces:
             return jsonify({'success': False, 'message': 'Không phát hiện khuôn mặt trong ảnh'})
         
-        # Lưu thông tin user vào database (chỉ lần đầu)
-        if image_count == 1 and user_info:
+        # Lưu hoặc cập nhật thông tin user vào database
+        if user_info:
             try:
                 conn = face_api.get_db_connection()
                 if conn:
@@ -229,15 +229,15 @@ def capture_face():
                         INSERT INTO admin_faces (user_id, email, full_name, role_name, created_at, updated_at)
                         VALUES (%s, %s, %s, %s, %s, %s)
                         ON DUPLICATE KEY UPDATE
-                        email = VALUES(email),
-                        full_name = VALUES(full_name),
-                        role_name = VALUES(role_name),
-                        updated_at = VALUES(updated_at)
+                            email = VALUES(email),
+                            full_name = VALUES(full_name),
+                            role_name = VALUES(role_name),
+                            updated_at = VALUES(updated_at)
                     """, (
                         user_id,
                         user_info.get('email'),
                         user_info.get('full_name'),
-                        user_info.get('role'),
+                        user_info.get('role') or user_info.get('role_name'),
                         datetime.now(),
                         datetime.now()
                     ))
