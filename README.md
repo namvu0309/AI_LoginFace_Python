@@ -1,3 +1,8 @@
+chrome://flags/#enable-experimental-web-platform-features
+vô chorme bật nó
+
+
+
 ### 1.3 Chạy migration Laravel
 ```bash
 cd Backend-QNHG
